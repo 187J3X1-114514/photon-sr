@@ -29,7 +29,7 @@ float compute_maximum_horizon_angle(
 	vec2 ray_pos = screen_pos.xy + ray_step * (dither + max_of(view_pixel_size) * rcp_length(ray_step));
 
 	for (int i = 0; i < GTAO_HORIZON_STEPS; ++i, ray_pos += ray_step) {
-        ivec2 texel = ivec2(clamp01(ray_pos) * view_res * taau_render_scale - 0.5);
+        ivec2 texel = ivec2(clamp01(ray_pos) * view_res * SR_RENDER_SCALE - 0.5);
 		float depth = texelFetch(combined_depth_buffer, texel, 0).x;
 
 		if (depth == 1.0 || depth < hand_depth || depth == screen_pos.z) continue;

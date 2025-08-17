@@ -110,7 +110,7 @@ uniform vec4 entityColor;
 #if defined PROGRAM_GBUFFERS_TERRAIN && defined POM
 	#define read_tex(x) textureGrad(x, parallax_uv, uv_gradient[0], uv_gradient[1])
 #else
-	#define read_tex(x) texture(x, uv, lod_bias)
+	#define read_tex(x) texture(x, uv, SR_RENDER_SCALE_LOG2)
 #endif
 
 #if   TEXTURE_FORMAT == TEXTURE_FORMAT_LAB
@@ -206,9 +206,6 @@ vec3 draw_end_portal() {
 	return result;
 }
 #endif
-
-const float lod_bias = log2(taau_render_scale);
-
 void main() {
 #if defined TAA && defined TAAU
 	vec2 coord = gl_FragCoord.xy * view_pixel_size * rcp(taau_render_scale);

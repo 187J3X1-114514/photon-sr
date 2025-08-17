@@ -58,11 +58,35 @@ const float golden_ratio = 0.5 + 0.5 * sqrt(5.0);
 const float golden_angle = tau / golden_ratio / golden_ratio;
 const float hand_depth   = 0.56;
 
-#if defined TAA && defined TAAU
-const float taau_render_scale = TAAU_RENDER_SCALE;
+#ifdef SRMOD_ENABLED
+    uniform float SRRatio; 
+    uniform float SRRenderScale; 
+    uniform float SRRenderScaleLog2; 
+    uniform vec2 SRScaledViewportSize; 
+    uniform vec2 SROriginalViewportSize; 
+    uniform vec2 SRScaledViewportSizeI; 
+    uniform vec2 SROriginalViewportSizeI; 
+
+    #define SR_RATIO                 (SRRatio)
+    #define SR_RENDER_SCALE          (SRRenderScale)
+    #define SR_RENDER_SCALE_LOG2     (SRRenderScaleLog2)
+    #define SR_SCALED_VIEWPORT_SIZE  (SRScaledViewportSize)
+    #define SR_ORIGINAL_VIEWPORT_SIZE (SROriginalViewportSize)
+    #define SR_SCALED_VIEWPORT_SIZEI  (SRScaledViewportSizeI)
+    #define SR_ORIGINAL_VIEWPORT_SIZEI (SROriginalViewportSizeI)
+	#define taau_render_scale (SRRenderScale)
 #else
-const float taau_render_scale = 1.0;
+    #define SR_RATIO                 (1.0)
+    #define SR_RENDER_SCALE          (1.0)
+    #define SR_RENDER_SCALE_LOG2     (0.0)
+    #define SR_SCALED_VIEWPORT_SIZE  (vec2(viewWidth,viewHeight))
+    #define SR_ORIGINAL_VIEWPORT_SIZE (vec2(viewWidth,viewHeight))
+    #define SR_SCALED_VIEWPORT_SIZE  (ivec2(viewWidth,viewHeight))
+    #define SR_ORIGINAL_VIEWPORT_SIZE (ivec2(viewWidth,viewHeight))
+	#define taau_render_scale 1.0
 #endif
+
+
 
 // Helper functions
 

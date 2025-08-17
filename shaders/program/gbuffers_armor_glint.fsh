@@ -30,7 +30,6 @@ uniform sampler2D gtexture;
 uniform vec2 taa_offset;
 uniform vec2 view_pixel_size;
 
-const float lod_bias = log2(taau_render_scale);
 
 #include "/include/utility/color.glsl"
 
@@ -40,7 +39,7 @@ void main() {
 	if (clamp01(coord) != coord) discard;
 #endif
 
-	vec3 armor_glint = texture(gtexture, uv, lod_bias).rgb;
+	vec3 armor_glint = texture(gtexture, uv, SR_RENDER_SCALE_LOG2).rgb;
 
 #if defined IS_IRIS
 	// New overlay handling

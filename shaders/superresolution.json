@@ -1,0 +1,57 @@
+{
+    "sr": {
+        "enabled": true,
+        "worlds": {
+            "*": {
+                "enabled": true,
+                "upscale_config": {
+                    "before_upscale_shader_name": "composite3",
+                    "input_textures": {
+                        "color": {
+                            "enabled": true,
+                            "src": "colortex0",
+                            "region": [
+                                0,
+                                0,
+                                -1,
+                                -1
+                            ]
+                        },
+                        "depth": {
+                            "enabled": true,
+                            "src": "depthtex",
+                            "region": [
+                                0,
+                                0,
+                                -1,
+                                -1
+                            ]
+                        },
+                        "motion_vectors": {
+                            "enabled": true,
+                            "src": "colortex1",
+                            "region": [
+                                0,
+                                0,
+                                -1,
+                                -1
+                            ]
+                        }
+                    },
+                    "output_textures": {
+                        "upscaled_color": {
+                            "enabled": true,
+                            "target": ["colortex0","alttex0"],
+                            "region": [
+                                0,
+                                0,
+                                -2,
+                                -2
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

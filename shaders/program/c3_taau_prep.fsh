@@ -11,75 +11,49 @@
 
 #include "/include/global.glsl"
 
-layout (location = 0) out vec3 min_color;
-layout (location = 1) out vec3 max_color;
+layout(location = 0) out vec2 mv;
 
-/* RENDERTARGETS: 1,2 */
+/* RENDERTARGETS: 1 */
 
 in vec2 uv;
 
 uniform sampler2D colortex0;
+uniform sampler2D depthtex0;
 
+uniform mat4 gbufferModelView;
+uniform mat4 gbufferModelViewInverse;
+uniform mat4 gbufferProjection;
+uniform mat4 gbufferProjectionInverse;
+
+uniform mat4 gbufferPreviousModelView;
+uniform mat4 gbufferPreviousProjection;
+
+uniform vec3 cameraPosition;
+uniform vec3 previousCameraPosition;
+
+uniform float frameTime;
+uniform float near;
+uniform float far;
+
+uniform vec2 view_res;
+uniform vec2 view_pixel_size;
+uniform vec2 taa_offset;
+#define TEMPORAL_REPROJECTION
 #include "/include/utility/color.glsl"
-
-vec3 min_of(vec3 a, vec3 b, vec3 c, vec3 d, vec3 f) {
-    return min(a, min(b, min(c, min(d, f))));
+#include "/include/utility/space_conversion.glsl"
+vec2 compute_velocity(vec2 uv, float depth) {
+    vec3 closest = vec3(uv, depth);
+    vec3 view_pos  = screen_to_view_space(closest, false, false);
+    vec3 scene_pos = view_to_scene_space(view_pos);
+    vec2 velocity  = closest.xy - reproject_scene_space(scene_pos, false, false).xy;
+    return velocity;
 }
 
-vec3 max_of(vec3 a, vec3 b, vec3 c, vec3 d, vec3 f) {
-    return max(a, max(b, max(c, max(d, f))));
-}
-
-// Invertible tonemapping operator (Reinhard) applied before blending the current and previous frames
-// Improves the appearance of emissive objects
-vec3 reinhard(vec3 rgb) {
-	return rgb / (rgb + 1.0);
-}
 
 void main() {
-	ivec2 texel = ivec2(gl_FragCoord.xy);
-
-	// Fetch 3x3 neighborhood
-	// a b c
-	// d e f
-	// g h i
-	vec3 a = texelFetch(colortex0, texel + ivec2(-1,  1), 0).rgb;
-	vec3 b = texelFetch(colortex0, texel + ivec2( 0,  1), 0).rgb;
-	vec3 c = texelFetch(colortex0, texel + ivec2( 1,  1), 0).rgb;
-	vec3 d = texelFetch(colortex0, texel + ivec2(-1,  0), 0).rgb;
-	vec3 e = texelFetch(colortex0, texel, 0).rgb;
-	vec3 f = texelFetch(colortex0, texel + ivec2( 1,  0), 0).rgb;
-	vec3 g = texelFetch(colortex0, texel + ivec2(-1, -1), 0).rgb;
-	vec3 h = texelFetch(colortex0, texel + ivec2( 0, -1), 0).rgb;
-	vec3 i = texelFetch(colortex0, texel + ivec2( 1, -1), 0).rgb;
-
-	// Convert to YCoCg
-	a = rgb_to_ycocg(reinhard(a));
-	b = rgb_to_ycocg(reinhard(b));
-	c = rgb_to_ycocg(reinhard(c));
-	d = rgb_to_ycocg(reinhard(d));
-	e = rgb_to_ycocg(reinhard(e));
-	f = rgb_to_ycocg(reinhard(f));
-	g = rgb_to_ycocg(reinhard(g));
-	h = rgb_to_ycocg(reinhard(h));
-	i = rgb_to_ycocg(reinhard(i));
-
-	// Soft minimum and maximum ("Hybrid Reconstruction Antialiasing")
-	//        b         a b c
-	// (min d e f + min d e f) / 2
-	//        h         g h i
-	min_color  = min_of(b, d, e, f, h);
-	min_color += min_of(min_color, a, c, g, i);
-	min_color *= 0.5;
-
-	max_color  = max_of(b, d, e, f, h);
-	max_color += max_of(max_color, a, c, g, i);
-	max_color *= 0.5;
-
-	min_color = min_color * 0.5 + 0.5;
-	max_color = max_color * 0.5 + 0.5;
+    ivec2 texel = ivec2(gl_FragCoord.xy);
+	mv = compute_velocity(uv, texelFetch(depthtex0, texel, 0).x);
 }
 
 #endif
 //----------------------------------------------------------------------------//
-

@@ -30,8 +30,6 @@ uniform sampler2D gtexture;
 uniform vec2 taa_offset;
 uniform vec2 view_pixel_size;
 
-const float lod_bias = log2(taau_render_scale);
-
 #include "/include/utility/color.glsl"
 
 void main() {
@@ -40,7 +38,7 @@ void main() {
 	if (clamp01(coord) != coord) discard;
 #endif
 
-	damage_overlay = texture(gtexture, uv, lod_bias);
+	damage_overlay = texture(gtexture, uv, SR_RENDER_SCALE_LOG2);
 	if (damage_overlay.a < 0.1) discard;
 
 #ifdef USE_SEPARATE_ENTITY_DRAWS

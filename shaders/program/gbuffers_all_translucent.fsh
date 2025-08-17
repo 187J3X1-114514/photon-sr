@@ -177,7 +177,6 @@ uniform vec4 entityColor;
 #include "/include/lighting/cloud_shadows.glsl"
 #endif
 
-const float lod_bias = log2(taau_render_scale);
 
 #if   TEXTURE_FORMAT == TEXTURE_FORMAT_LAB
 void decode_normal_map(vec3 normal_map, out vec3 normal, out float ao) {
@@ -206,7 +205,7 @@ Material get_water_material(
 	// Water texture
 
 #if WATER_TEXTURE == WATER_TEXTURE_HIGHLIGHT || WATER_TEXTURE == WATER_TEXTURE_HIGHLIGHT_UNDERGROUND
-	vec4 base_color = texture(gtexture, uv, lod_bias);
+	vec4 base_color = texture(gtexture, uv, SR_RENDER_SCALE_LOG2);
 	float texture_highlight  = dampen(0.5 * sqr(linear_step(0.63, 1.0, base_color.r)) + 0.03 * base_color.r);
 #if WATER_TEXTURE == WATER_TEXTURE_HIGHLIGHT_UNDERGROUND
 		  texture_highlight *= 1.0 - cube(linear_step(0.0, 0.5, light_levels.y));
@@ -216,7 +215,7 @@ Material get_water_material(
 	material.roughness += 0.3 * texture_highlight;
 	alpha              += texture_highlight;
 #elif WATER_TEXTURE == WATER_TEXTURE_VANILLA
-	vec4 base_color = texture(gtexture, uv, lod_bias) * tint;
+	vec4 base_color = texture(gtexture, uv, SR_RENDER_SCALE_LOG2) * tint;
 	material.albedo = srgb_eotf_inv(base_color.rgb * base_color.a) * rec709_to_working_color;
 	alpha = base_color.a;
 #endif
@@ -424,12 +423,12 @@ void main() {
 	} else {
 		// Sample textures
 
-		fragment_color    = texture(gtexture, uv, lod_bias) * tint;
+		fragment_color    = texture(gtexture, uv, SR_RENDER_SCALE_LOG2) * tint;
 #ifdef NORMAL_MAPPING
-		vec3 normal_map   = texture(normals, uv, lod_bias).xyz;
+		vec3 normal_map   = texture(normals, uv, SR_RENDER_SCALE_LOG2).xyz;
 #endif
 #ifdef SPECULAR_MAPPING
-		vec4 specular_map = texture(specular, uv, lod_bias);
+		vec4 specular_map = texture(specular, uv, SR_RENDER_SCALE_LOG2);
 #endif
 
 #ifdef FANCY_NETHER_PORTAL

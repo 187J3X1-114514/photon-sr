@@ -32,7 +32,7 @@ flat in float histogram_selected_bin;
 
 uniform sampler2D colortex0; // Scene color
 uniform sampler2D colortex5; // Scene history
-
+#undef TAAU
 #ifdef TAAU
 uniform sampler2D colortex1; // TAA min color
 uniform sampler2D colortex2; // TAA max color
@@ -251,7 +251,7 @@ void draw_histogram(ivec2 texel) {
 #endif
 
 void main() {
-	ivec2 texel = ivec2(gl_FragCoord.xy * taau_render_scale);
+	ivec2 texel = ivec2(gl_FragCoord.xy );
 
 #ifdef TAA
 	#ifndef DISTANT_HORIZONS
