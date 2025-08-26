@@ -13,7 +13,7 @@
 
 out vec2 uv;
 
-uniform vec2 taa_offset;
+
 uniform vec2 view_pixel_size;
 
 void main() {

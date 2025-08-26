@@ -78,7 +78,7 @@ uniform float frameTimeCounter;
 
 uniform vec2 view_res;
 uniform vec2 view_pixel_size;
-uniform vec2 taa_offset;
+
 
 uniform vec3 light_dir;
 
@@ -110,7 +110,7 @@ uniform vec4 entityColor;
 #if defined PROGRAM_GBUFFERS_TERRAIN && defined POM
 	#define read_tex(x) textureGrad(x, parallax_uv, uv_gradient[0], uv_gradient[1])
 #else
-	#define read_tex(x) texture(x, uv, SR_RENDER_SCALE_LOG2)
+	#define read_tex(x) texture(x, uv, MC_RENDER_SCALE_LOG2)
 #endif
 
 #if   TEXTURE_FORMAT == TEXTURE_FORMAT_LAB

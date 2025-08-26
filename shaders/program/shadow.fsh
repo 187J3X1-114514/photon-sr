@@ -50,7 +50,7 @@ uniform float far;
 uniform float frameTimeCounter;
 uniform float rainStrength;
 
-uniform vec2 taa_offset;
+
 uniform vec3 light_dir;
 
 #include "/include/surface/water_normal.glsl"

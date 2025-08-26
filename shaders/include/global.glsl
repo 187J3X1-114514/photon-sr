@@ -58,32 +58,46 @@ const float golden_ratio = 0.5 + 0.5 * sqrt(5.0);
 const float golden_angle = tau / golden_ratio / golden_ratio;
 const float hand_depth   = 0.56;
 
-#ifdef SRMOD_ENABLED
-    uniform float SRRatio; 
-    uniform float SRRenderScale; 
-    uniform float SRRenderScaleLog2; 
-    uniform vec2 SRScaledViewportSize; 
-    uniform vec2 SROriginalViewportSize; 
-    uniform vec2 SRScaledViewportSizeI; 
-    uniform vec2 SROriginalViewportSizeI; 
+uniform vec2 taa_offsetF;
 
-    #define SR_RATIO                 (SRRatio)
-    #define SR_RENDER_SCALE          (SRRenderScale)
-    #define SR_RENDER_SCALE_LOG2     (SRRenderScaleLog2)
-    #define SR_SCALED_VIEWPORT_SIZE  (SRScaledViewportSize)
-    #define SR_ORIGINAL_VIEWPORT_SIZE (SROriginalViewportSize)
-    #define SR_SCALED_VIEWPORT_SIZEI  (SRScaledViewportSizeI)
-    #define SR_ORIGINAL_VIEWPORT_SIZEI (SROriginalViewportSizeI)
+#ifdef SR_INSTALLED
+    uniform float                           SRRatio; 
+    uniform float                           SRRenderScale; 
+    uniform float                           SRRenderScaleLog2; 
+    uniform vec2                            SRScaledViewportSize; 
+    uniform vec2                            SROriginalViewportSize; 
+    uniform ivec2                           SRScaledViewportSizeI; 
+    uniform ivec2                           SROriginalViewportSizeI; 
+    uniform vec2                            SRJitterOffset;
+
+    #define MC_RENDER_SCALE                 (SRRenderScale)            //渲染倍率
+    #define MC_RENDER_RATIO                 (SRRatio)                  //等于1/SRRenderScale
+    #define MC_RENDER_SCALE_LOG2            (SRRenderScaleLog2)        //等于log2(SRRenderScale)
+    #define MC_SCALED_VIEWPORT_SIZE         (SRScaledViewportSize)     //等于vec2(SROriginalViewportSize) * SRRenderScale
+    #define MC_ORIGINAL_VIEWPORT_SIZE       (SROriginalViewportSize)   //未经缩放的视图大小
+    #define MC_SCALED_VIEWPORT_SIZEI        (SRScaledViewportSizeI)    //等于ivec2(vec2(SROriginalViewportSizeI) * SRRenderScale)
+    #define MC_ORIGINAL_VIEWPORT_SIZEI      (SROriginalViewportSizeI)  //未经缩放的视图大小，整数
+    #if SR_SUPPORTS_JITTER
+        #define MC_JITTER_OFFSET            (SRJitterOffset)
+		#define taa_offset (vec2(SRJitterOffset.x / SROriginalViewportSize.x,SRJitterOffset.y / SROriginalViewportSize.x))
+    #else
+        #define MC_JITTER_OFFSET            (vec2(0.0))
+		#define taa_offset (taa_offsetF)
+    #endif
 	#define taau_render_scale (SRRenderScale)
+	
+
 #else
-    #define SR_RATIO                 (1.0)
-    #define SR_RENDER_SCALE          (1.0)
-    #define SR_RENDER_SCALE_LOG2     (0.0)
-    #define SR_SCALED_VIEWPORT_SIZE  (vec2(viewWidth,viewHeight))
-    #define SR_ORIGINAL_VIEWPORT_SIZE (vec2(viewWidth,viewHeight))
-    #define SR_SCALED_VIEWPORT_SIZE  (ivec2(viewWidth,viewHeight))
-    #define SR_ORIGINAL_VIEWPORT_SIZE (ivec2(viewWidth,viewHeight))
+    #define MC_RENDER_SCALE                 (1.0)
+    #define MC_RENDER_RATIO                 (1.0)
+    #define MC_RENDER_SCALE_LOG2            (0.0)
+    #define MC_SCALED_VIEWPORT_SIZE         (vec2(viewWidth,viewHeight))
+    #define MC_ORIGINAL_VIEWPORT_SIZE       (vec2(viewWidth,viewHeight))
+    #define MC_SCALED_VIEWPORT_SIZEI        (ivec2(viewWidth,viewHeight))
+    #define MC_ORIGINAL_VIEWPORT_SIZEI      (ivec2(viewWidth,viewHeight))
+    #define MC_JITTER_OFFSET                (vec2(0.0))
 	#define taau_render_scale 1.0
+	#define taa_offset (taa_offsetF)
 #endif
 
 

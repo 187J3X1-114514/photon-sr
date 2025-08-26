@@ -29,7 +29,7 @@ uniform float screenBrightness;
 
 uniform vec2 view_res;
 uniform vec2 view_pixel_size;
-uniform vec2 taa_offset;
+
 
 #include "/include/utility/color.glsl"
 

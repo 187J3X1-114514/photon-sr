@@ -104,7 +104,7 @@ uniform vec3 moon_dir;
 
 uniform vec2 view_res;
 uniform vec2 view_pixel_size;
-uniform vec2 taa_offset;
+
 
 uniform float eye_skylight;
 

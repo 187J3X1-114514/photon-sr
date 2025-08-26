@@ -30,7 +30,7 @@ uniform ivec2 atlasSize;
 uniform float frameTimeCounter;
 uniform float rainStrength;
 
-uniform vec2 taa_offset;
+
 uniform vec3 light_dir;
 
 #include "/include/utility/space_conversion.glsl"

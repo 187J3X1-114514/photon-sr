@@ -26,7 +26,7 @@ uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 dhProjection;
 uniform vec3 cameraPosition;
-uniform vec2 taa_offset;
+
 
 void main() {
 	light_levels = linear_step(

@@ -40,7 +40,7 @@ uniform float centerDepthSmooth;
 uniform int frameCounter;
 
 uniform vec2 view_pixel_size;
-uniform vec2 taa_offset;
+
 
 #include "/include/misc/distant_horizons.glsl"
 #include "/include/utility/random.glsl"

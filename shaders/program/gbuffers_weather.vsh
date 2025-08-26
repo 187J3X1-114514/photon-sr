@@ -26,7 +26,7 @@ uniform vec3 cameraPosition;
 
 uniform int frameCounter;
 
-uniform vec2 taa_offset;
+
 uniform vec2 view_pixel_size;
 
 void main() {

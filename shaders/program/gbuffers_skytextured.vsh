@@ -26,7 +26,7 @@ flat out vec3 moon_color;
 uniform float sunAngle;
 uniform float rainStrength;
 
-uniform vec2 taa_offset;
+
 
 uniform vec3 sun_dir;
 uniform vec3 light_dir;

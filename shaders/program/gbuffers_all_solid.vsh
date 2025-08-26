@@ -64,7 +64,7 @@ uniform float frameTimeCounter;
 uniform float rainStrength;
 uniform float wetness;
 
-uniform vec2 taa_offset;
+
 uniform vec3 light_dir;
 
 uniform float world_age;

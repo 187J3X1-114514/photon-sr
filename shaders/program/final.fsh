@@ -46,7 +46,7 @@ uniform mat4 gbufferProjection;
 uniform mat4 gbufferProjectionInverse;
 
 uniform vec2 view_res;
-uniform vec2 taa_offset;
+
 
 uniform float near;
 uniform float far;

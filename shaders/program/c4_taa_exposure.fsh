@@ -57,7 +57,7 @@ uniform float far;
 
 uniform vec2 view_res;
 uniform vec2 view_pixel_size;
-uniform vec2 taa_offset;
+
 
 #define TEMPORAL_REPROJECTION
 

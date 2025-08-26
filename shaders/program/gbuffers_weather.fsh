@@ -29,7 +29,7 @@ uniform int frameCounter;
 
 uniform vec3 sun_dir;
 
-uniform vec2 taa_offset;
+
 uniform vec2 view_pixel_size;
 
 uniform float biome_may_snow;
