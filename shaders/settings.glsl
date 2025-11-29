@@ -504,6 +504,7 @@ const float wetnessHalflife         = 70.0;
 //   Miscellaneous
 // -----------------
 
+//#define DEBUG_INFO
   #define INFO 2 // [0 1 2 3]
 
   #define DEBUG_VIEW_NONE      0

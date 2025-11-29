@@ -674,6 +674,7 @@ value.AUTO_EXPOSURE.AUTO_EXPOSURE_OFF       = Off
 
 # Misc settings
 
+option.DEBUG_INFO                      = Debug information
 option.DEBUG_VIEW                      = Debug View
 option.DEBUG_SAMPLER                   = Debug Sampler
 option.WHITE_WORLD                     = White World
