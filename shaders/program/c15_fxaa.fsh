@@ -21,6 +21,7 @@ uniform sampler2D colortex0;
 
 uniform vec2 view_pixel_size;
 
+
 const int max_iterations = 12;
 const float[12] quality = float[12](1.0, 1.0, 1.0, 1.0, 1.0, 1.5, 2.0, 2.0, 2.0, 2.0, 4.0, 8.0);
 

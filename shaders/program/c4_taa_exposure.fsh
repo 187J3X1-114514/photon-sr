@@ -59,6 +59,7 @@ uniform vec2 view_res;
 uniform vec2 view_pixel_size;
 
 
+
 #define TEMPORAL_REPROJECTION
 
 #include "/include/misc/distant_horizons.glsl"

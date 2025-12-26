@@ -62,6 +62,7 @@ uniform vec3 light_dir;
 uniform vec2 view_res;
 uniform vec2 view_pixel_size;
 
+
 uniform vec2 clouds_offset;
 
 uniform bool daylight_cycle_enabled;

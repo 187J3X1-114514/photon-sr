@@ -20,24 +20,17 @@ in vec2 uv;
 // ------------
 
 uniform sampler2D colortex0; // Scene color
+uniform sampler2D colortex16;
 
 #if DEBUG_VIEW == DEBUG_VIEW_SAMPLER
 uniform sampler2D DEBUG_SAMPLER;
 #endif
 
-uniform float viewHeight;
 uniform float frameTimeCounter;
 
 #ifdef COLORED_LIGHTS
 uniform sampler2D shadowtex0;
 #endif
-
-#include "/include/utility/bicubic.glsl"
-#include "/include/utility/color.glsl"
-#include "/include/utility/dithering.glsl"
-#include "/include/utility/text_rendering.glsl"
-
-#ifdef DISTANCE_VIEW
 uniform sampler2D depthtex0;
 
 uniform mat4 gbufferModelView;
@@ -45,13 +38,26 @@ uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjection;
 uniform mat4 gbufferProjectionInverse;
 
+uniform mat4 gbufferPreviousModelView;
+uniform mat4 gbufferPreviousProjection;
+
+uniform vec3 cameraPosition;
+uniform vec3 previousCameraPosition;
+
+uniform float frameTime;
+uniform vec2 view_pixel_size;
 uniform vec2 view_res;
 
 uniform float near;
 uniform float far;
-
-#include "/include/misc/distant_horizons.glsl"
+#include "/include/utility/bicubic.glsl"
+#include "/include/utility/color.glsl"
+#include "/include/utility/dithering.glsl"
+#include "/include/utility/text_rendering.glsl"
+#define TEMPORAL_REPROJECTION
 #include "/include/utility/space_conversion.glsl"
+#ifdef DISTANCE_VIEW
+#include "/include/misc/distant_horizons.glsl"
 #endif
 
 const int debug_text_scale = 2;
@@ -139,6 +145,12 @@ void draw_iris_required_error_message() {
     end_text(fragment_color);
 }
 
+vec2 calc_motion_vectors() {
+    ivec2 view_texel = ivec2(gl_FragCoord.xy * taau_render_scale);
+    vec2 velocity = texelFetch(colortex16, view_texel, 0).xy;
+    return velocity;
+}
+
 void main() {
     #if defined COLORED_LIGHTS && !defined IS_IRIS
     draw_iris_required_error_message();
@@ -199,6 +211,7 @@ void main() {
         fragment_color = texture(shadowtex0, uv).rgb;
     }
     #endif
+    fragment_color = vec3(calc_motion_vectors(), 0.0);
 
     #ifdef DEBUG_INFO
     begin_text(ivec2(gl_FragCoord.xy) / 3, ivec2(0, viewHeight / 3));

@@ -26,6 +26,7 @@ in vec2 uv;
 
 uniform vec2 view_pixel_size;
 
+
 const float tile_scale = bloom_tile_scale(BLOOM_TILE_INDEX);
 const vec2 tile_offset = bloom_tile_offset(BLOOM_TILE_INDEX);
 

@@ -109,6 +109,7 @@ uniform mat4 shadowProjectionInverse;
 uniform vec3 cameraPosition;
 uniform vec3 previousCameraPosition;
 
+
 uniform float eyeAltitude;
 uniform float near;
 uniform float far;

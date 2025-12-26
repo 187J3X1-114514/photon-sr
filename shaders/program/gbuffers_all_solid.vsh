@@ -34,6 +34,9 @@ out float vanilla_ao;
 out vec2 uv_local;
 #endif
 
+out vec4 current_clip_pos;
+out vec4 previous_clip_pos;
+
 // --------------
 //   Attributes
 // --------------
@@ -54,6 +57,10 @@ uniform mat4 gbufferProjection;
 uniform mat4 gbufferProjectionInverse;
 
 uniform vec3 cameraPosition;
+uniform vec3 previousCameraPosition;
+
+uniform mat4 gbufferPreviousModelView;
+uniform mat4 gbufferPreviousProjection;
 
 uniform float near;
 uniform float far;
@@ -148,6 +155,16 @@ void main() {
 
 	vec3 view_pos = scene_to_view_space(pos);
 	vec4 clip_pos = project(gl_ProjectionMatrix, view_pos);
+
+    current_clip_pos = clip_pos;
+
+#if defined PROGRAM_GBUFFERS_HAND
+    previous_clip_pos = clip_pos;
+#else
+    vec3 world_pos = scene_pos + cameraPosition;
+    vec3 previous_scene_pos = world_pos - previousCameraPosition;
+    previous_clip_pos = gbufferPreviousProjection * (gbufferPreviousModelView * vec4(previous_scene_pos, 1.0));
+#endif
 
 #if   defined TAA && defined TAAU
 	clip_pos.xy  = clip_pos.xy * taau_render_scale + clip_pos.w * (taau_render_scale - 1.0);

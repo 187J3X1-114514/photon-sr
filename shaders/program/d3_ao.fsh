@@ -46,6 +46,7 @@ uniform float near;
 uniform float far;
 uniform float eyeAltitude;
 
+
 uniform int frameCounter;
 
 uniform vec3 light_dir;

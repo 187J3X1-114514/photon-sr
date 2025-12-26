@@ -11,17 +11,18 @@
 
 #include "/include/global.glsl"
 
-layout (location = 0) out vec4 gbuffer_data_0; // albedo, block ID, flat normal, light levels
-layout (location = 1) out vec4 gbuffer_data_1; // detailed normal, specular map (optional)
+layout (location = 0) out vec2 motion_vectors; // mv
+layout (location = 1) out vec4 gbuffer_data_0; // albedo, block ID, flat normal, light levels
+layout (location = 2) out vec4 gbuffer_data_1; // detailed normal, specular map (optional)
 
-/* RENDERTARGETS: 1 */
+/* RENDERTARGETS: 16,1 */
 
 #ifdef NORMAL_MAPPING
-/* RENDERTARGETS: 1,2 */
+/* RENDERTARGETS: 16,1,2 */
 #endif
 
 #ifdef SPECULAR_MAPPING
-/* RENDERTARGETS: 1,2 */
+/* RENDERTARGETS: 16,1,2 */
 #endif
 
 in vec2 uv;
@@ -46,6 +47,9 @@ in float vanilla_ao;
 #if defined PROGRAM_GBUFFERS_ENTITIES || defined PROGRAM_GBUFFERS_HAND
 in vec2 uv_local;
 #endif
+
+in vec4 current_clip_pos;
+in vec4 previous_clip_pos;
 
 // ------------
 //   Uniforms
@@ -361,4 +365,12 @@ void main() {
 	// Kill the little rain splash particles
 	if (base_color.r < 0.29 && base_color.g < 0.45 && base_color.b > 0.75) discard;
 #endif
+
+    vec2 current_ndc = current_clip_pos.xy / current_clip_pos.w;
+    vec2 previous_ndc = previous_clip_pos.xy / previous_clip_pos.w;
+
+    vec2 current_screen = current_ndc * 0.5 + 0.5;
+    vec2 previous_screen = previous_ndc * 0.5 + 0.5;
+
+    motion_vectors = (previous_screen - current_screen) * view_res * taau_render_scale;
 }

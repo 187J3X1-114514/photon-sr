@@ -65,6 +65,7 @@ uniform mat4 shadowModelViewInverse;
 uniform mat4 shadowProjection;
 uniform mat4 shadowProjectionInverse;
 
+
 #ifdef DISTANT_HORIZONS
 uniform int dhRenderDistance;
 #endif

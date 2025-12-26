@@ -21,6 +21,7 @@ uniform sampler2D colortex0;
 
 uniform vec2 view_res;
 
+
 void main() {
 	int tile_index = int(-log2(1.0 - uv.x));
 

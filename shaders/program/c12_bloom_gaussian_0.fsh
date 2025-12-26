@@ -27,6 +27,7 @@ uniform sampler2D colortex0;
 
 uniform vec2 view_res;
 
+
 const float[5] binomial_weights_9 = float[5](
    0.2734375,
    0.21875,

@@ -1,54 +1,62 @@
 {
-    "sr": {
-        "enabled": true,
-        "worlds": {
-            "*": {
+    "schema_version": 1,
+    "profiles": {
+        "*": {
+            "jitter": {
+                "enabled": true
+            },
+            "upscale": {
                 "enabled": true,
-                "upscale_config": {
-                    "before_upscale_shader_name": "composite3",
-                    "input_textures": {
-                        "color": {
-                            "enabled": true,
-                            "src": "colortex0",
-                            "region": [
-                                0,
-                                0,
-                                -1,
-                                -1
-                            ]
-                        },
-                        "depth": {
-                            "enabled": true,
-                            "src": "depthtex",
-                            "region": [
-                                0,
-                                0,
-                                -1,
-                                -1
-                            ]
-                        },
-                        "motion_vectors": {
-                            "enabled": true,
-                            "src": "colortex1",
-                            "region": [
-                                0,
-                                0,
-                                -1,
-                                -1
-                            ]
-                        }
+                "internal_format": "r11g11b10f",
+                "trigger": {
+                    "mode": "AFTER",
+                    "pass": "composite1"
+                },
+                "inputs": {
+                    "color": {
+                        "enabled": true,
+                        "src": "colortex0",
+                        "region": [
+                            0,
+                            0,
+                            -1,
+                            -1
+                        ]
                     },
-                    "output_textures": {
-                        "upscaled_color": {
-                            "enabled": true,
-                            "target": ["colortex0","alttex0"],
-                            "region": [
-                                0,
-                                0,
-                                -2,
-                                -2
-                            ]
-                        }
+                    "depth": {
+                        "enabled": true,
+                        "src": "depthtex",
+                        "region": [
+                            0,
+                            0,
+                            -1,
+                            -1
+                        ]
+                    },
+                    "motion_vectors": {
+                        "enabled": true,
+                        "src": "colortex1",
+                        "region": [
+                            0,
+                            0,
+                            -1,
+                            -1
+                        ]
+                    }
+                },
+                "outputs": {
+                    "upscaled_color": {
+                        "enabled": true,
+                        "target": [
+                            "colortex0",
+                            "alttex0"
+                        ],
+                        "region": [
+                            0,
+                            0,
+                            -2,
+                            -2
+                        ]
                     }
                 }
             }
