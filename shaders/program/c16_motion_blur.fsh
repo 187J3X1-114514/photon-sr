@@ -13,7 +13,11 @@
 
 layout (location = 0) out vec3 scene_color;
 
+#if defined(SR_INSTALLED) && defined(SR_SHOULD_APPLY_SCALE) && (SR_SHOULD_APPLY_SCALE == 1)
+/* RENDERTARGETS: 18 */
+#else
 /* RENDERTARGETS: 0 */
+#endif
 
 in vec2 uv;
 
@@ -21,7 +25,13 @@ in vec2 uv;
 //   Uniforms
 // ------------
 
+#if defined(SR_INSTALLED) && defined(SR_SHOULD_APPLY_SCALE) && (SR_SHOULD_APPLY_SCALE == 1)
+uniform sampler2D colortex18; // Scene color (full res for SR)
+#define SCENE_COLOR_TEX colortex18
+#else
 uniform sampler2D colortex0; // Scene color
+#define SCENE_COLOR_TEX colortex0
+#endif
 
 uniform sampler2D depthtex0;
 
@@ -57,7 +67,7 @@ void main() {
 	float depth = texelFetch(depthtex0, view_texel, 0).x;
 
 	if (depth < hand_depth) {
-		scene_color = texelFetch(colortex0, texel, 0).rgb;
+		scene_color = texelFetch(SCENE_COLOR_TEX, texel, 0).rgb;
 		return;
 	}
 
@@ -72,7 +82,7 @@ void main() {
 		ivec2 tap      = ivec2(pos * view_res);
 		ivec2 view_tap = ivec2(pos * view_res * taau_render_scale);
 
-		vec3 color = texelFetch(colortex0, tap, 0).rgb;
+		vec3 color = texelFetch(SCENE_COLOR_TEX, tap, 0).rgb;
 		float depth = texelFetch(depthtex0, view_tap, 0).x;
 		float weight = (clamp01(pos) == pos && depth > hand_depth) ? 1.0 : 0.0;
 

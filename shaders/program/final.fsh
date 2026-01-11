@@ -19,7 +19,13 @@ in vec2 uv;
 //   Uniforms
 // ------------
 
+#if defined(SR_INSTALLED) && defined(SR_SHOULD_APPLY_SCALE) && (SR_SHOULD_APPLY_SCALE == 1)
+uniform sampler2D colortex18; // Scene color (full res for SR)
+#define SCENE_COLOR_TEX colortex18
+#else
 uniform sampler2D colortex0; // Scene color
+#define SCENE_COLOR_TEX colortex0
+#endif
 uniform sampler2D colortex16;
 
 #if DEBUG_VIEW == DEBUG_VIEW_SAMPLER
@@ -160,9 +166,9 @@ void main() {
     ivec2 texel = ivec2(gl_FragCoord.xy);
 
     if (abs(MC_RENDER_QUALITY - 1.0) < 0.01) {
-        fragment_color = cas_filter(colortex0, texel, CAS_INTENSITY * 2.0 - 1.0);
+        fragment_color = cas_filter(SCENE_COLOR_TEX, texel, CAS_INTENSITY * 2.0 - 1.0);
     } else {
-        fragment_color = catmull_rom_filter_fast_rgb(colortex0, uv, 0.6);
+        fragment_color = catmull_rom_filter_fast_rgb(SCENE_COLOR_TEX, uv, 0.6);
         fragment_color = display_eotf(fragment_color);
     }
 
@@ -211,7 +217,7 @@ void main() {
         fragment_color = texture(shadowtex0, uv).rgb;
     }
     #endif
-    fragment_color = vec3(calc_motion_vectors(), 0.0);
+    //fragment_color = vec3(calc_motion_vectors(), 0.0);
 
     #ifdef DEBUG_INFO
     begin_text(ivec2(gl_FragCoord.xy) / 3, ivec2(0, viewHeight / 3));

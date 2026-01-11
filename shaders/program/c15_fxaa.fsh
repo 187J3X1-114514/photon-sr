@@ -13,11 +13,21 @@
 
 layout (location = 0) out vec3 scene_color;
 
+#if defined(SR_INSTALLED) && defined(SR_SHOULD_APPLY_SCALE) && (SR_SHOULD_APPLY_SCALE == 1)
+/* RENDERTARGETS: 18 */
+#else
 /* RENDERTARGETS: 0 */
+#endif
 
 in vec2 uv;
 
+#if defined(SR_INSTALLED) && defined(SR_SHOULD_APPLY_SCALE) && (SR_SHOULD_APPLY_SCALE == 1)
+uniform sampler2D colortex18;
+#define SCENE_COLOR_TEX colortex18
+#else
 uniform sampler2D colortex0;
+#define SCENE_COLOR_TEX colortex0
+#endif
 
 uniform vec2 view_pixel_size;
 
@@ -51,15 +61,15 @@ void main() {
 	// a b c
 	// d e f
 	// g h i
-	vec3 a = texelFetch(colortex0, texel + ivec2(-1,  1), 0).rgb;
-	vec3 b = texelFetch(colortex0, texel + ivec2( 0,  1), 0).rgb;
-	vec3 c = texelFetch(colortex0, texel + ivec2( 1,  1), 0).rgb;
-	vec3 d = texelFetch(colortex0, texel + ivec2(-1,  0), 0).rgb;
-	vec3 e = texelFetch(colortex0, texel, 0).rgb;
-	vec3 f = texelFetch(colortex0, texel + ivec2( 1,  0), 0).rgb;
-	vec3 g = texelFetch(colortex0, texel + ivec2(-1, -1), 0).rgb;
-	vec3 h = texelFetch(colortex0, texel + ivec2( 0, -1), 0).rgb;
-	vec3 i = texelFetch(colortex0, texel + ivec2( 1, -1), 0).rgb;
+	vec3 a = texelFetch(SCENE_COLOR_TEX, texel + ivec2(-1,  1), 0).rgb;
+	vec3 b = texelFetch(SCENE_COLOR_TEX, texel + ivec2( 0,  1), 0).rgb;
+	vec3 c = texelFetch(SCENE_COLOR_TEX, texel + ivec2( 1,  1), 0).rgb;
+	vec3 d = texelFetch(SCENE_COLOR_TEX, texel + ivec2(-1,  0), 0).rgb;
+	vec3 e = texelFetch(SCENE_COLOR_TEX, texel, 0).rgb;
+	vec3 f = texelFetch(SCENE_COLOR_TEX, texel + ivec2( 1,  0), 0).rgb;
+	vec3 g = texelFetch(SCENE_COLOR_TEX, texel + ivec2(-1, -1), 0).rgb;
+	vec3 h = texelFetch(SCENE_COLOR_TEX, texel + ivec2( 0, -1), 0).rgb;
+	vec3 i = texelFetch(SCENE_COLOR_TEX, texel + ivec2( 1, -1), 0).rgb;
 
 	// Luma at the current fragment
 	float luma = get_luma(e);
@@ -152,8 +162,8 @@ void main() {
 	vec2 uv2 = current_uv + offset;
 
 	// Read the lumas at both current extremities of the exploration segment, and compute the delta wrt the local average luma
-	float luma_end_1 = get_luma(textureLod(colortex0, uv1, 0).rgb);
-	float luma_end_2 = get_luma(textureLod(colortex0, uv2, 0).rgb);
+	float luma_end_1 = get_luma(textureLod(SCENE_COLOR_TEX, uv1, 0).rgb);
+	float luma_end_2 = get_luma(textureLod(SCENE_COLOR_TEX, uv2, 0).rgb);
 	luma_end_1 -= luma_local_average;
 	luma_end_2 -= luma_local_average;
 
@@ -173,12 +183,12 @@ void main() {
 		for (int i = 2; i < max_iterations; ++i) {
 			// If needed, read luma in 1st direction, compute delta
 			if (!reached1) {
-				luma_end_1  = get_luma(textureLod(colortex0, uv1, 0).rgb);
+				luma_end_1  = get_luma(textureLod(SCENE_COLOR_TEX, uv1, 0).rgb);
 				luma_end_1 -= luma_local_average;
 			}
 			// If needed, read luma in the opposite direction, compute delta
 			if (!reached2) {
-				luma_end_2  = get_luma(textureLod(colortex0, uv2, 0).rgb);
+				luma_end_2  = get_luma(textureLod(SCENE_COLOR_TEX, uv2, 0).rgb);
 				luma_end_2 -= luma_local_average;
 			}
 
@@ -247,7 +257,7 @@ void main() {
 	}
 
 	// Return the color at the new UV uvinates
-	scene_color = textureLod(colortex0, final_uv, 0).rgb;
+	scene_color = textureLod(SCENE_COLOR_TEX, final_uv, 0).rgb;
 }
 
 #ifndef FXAA 

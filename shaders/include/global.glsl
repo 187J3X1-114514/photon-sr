@@ -61,57 +61,14 @@ const float hand_depth = 0.56;
 uniform vec2 taa_offsetF;
 uniform float viewWidth;
 uniform float viewHeight;
-#ifdef SR_INSTALLED
-    uniform float SRRatio;
-    uniform float SRRenderScale;
-    uniform float SRRenderScaleLog2;
-    uniform vec2 SRScaledViewportSize;
-    uniform vec2 SROriginalViewportSize;
-    uniform ivec2 SRScaledViewportSizeI;
-    uniform ivec2 SROriginalViewportSizeI;
-    uniform vec2 SRJitterOffset;
-
-    #if SR_SHOULD_APPLY_SCALE
-        #define MC_RENDER_SCALE                 (SRRenderScale)            //渲染倍率
-        #define MC_RENDER_RATIO                 (SRRatio)                  //等于1/SRRenderScale
-        #define MC_RENDER_SCALE_LOG2            (SRRenderScaleLog2)        //等于log2(SRRenderScale)
-        #define MC_SCALED_VIEWPORT_SIZE         (SRScaledViewportSize)     //等于vec2(SROriginalViewportSize) * SRRenderScale
-        #define MC_ORIGINAL_VIEWPORT_SIZE       (SROriginalViewportSize)   //未经缩放的视图大小
-        #define MC_SCALED_VIEWPORT_SIZEI        (SRScaledViewportSizeI)    //等于ivec2(vec2(SROriginalViewportSizeI) * SRRenderScale)
-        #define MC_ORIGINAL_VIEWPORT_SIZEI      (SROriginalViewportSizeI)  //未经缩放的视图大小，整数
-        #define taau_render_scale (SRRenderScale)
-    #else
-        #define MC_RENDER_SCALE                 (SRRenderScale)
-        #define MC_RENDER_RATIO                 (SRRatio)
-        #define MC_RENDER_SCALE_LOG2            (SRRenderScaleLog2)
-        #define MC_SCALED_VIEWPORT_SIZE         (vec2(viewWidth,viewHeight))
-        #define MC_ORIGINAL_VIEWPORT_SIZE       (vec2(viewWidth,viewHeight))
-        #define MC_SCALED_VIEWPORT_SIZEI        (ivec2(viewWidth,viewHeight))
-        #define MC_ORIGINAL_VIEWPORT_SIZEI      (ivec2(viewWidth,viewHeight))
-        #define taau_render_scale 1.0
-    #endif
-
-    #if (SR_ALGO_SUPPORTS_JITTER && SR_SHOULD_APPLY_JITTER)
-        #define MC_JITTER_OFFSET            (SRJitterOffset)
-        #define taa_offset (vec2(SRJitterOffset.x / MC_SCALED_VIEWPORT_SIZE.x,SRJitterOffset.y / MC_SCALED_VIEWPORT_SIZE.y))
-    #else
-        #define MC_JITTER_OFFSET            (vec2(0.0))
-        #define taa_offset (taa_offsetF)
-    #endif
-
+#define SR_UTILS_SHOULD_ADD_UNIFORMS
+#include "sr_utils.glsl"
+#define taau_render_scale MC_RENDER_SCALE
+#if (SR_ALGO_SUPPORTS_JITTER && SR_SHOULD_APPLY_JITTER)
+    #define taa_offset (vec2(MC_JITTER_OFFSET.x / MC_ORIGINAL_VIEWPORT_SIZE.x,MC_JITTER_OFFSET.y / MC_ORIGINAL_VIEWPORT_SIZE.y))
 #else
-    #define MC_RENDER_SCALE                 (1.0)
-    #define MC_RENDER_RATIO                 (1.0)
-    #define MC_RENDER_SCALE_LOG2            (0.0)
-    #define MC_SCALED_VIEWPORT_SIZE         (vec2(viewWidth,viewHeight))
-    #define MC_ORIGINAL_VIEWPORT_SIZE       (vec2(viewWidth,viewHeight))
-    #define MC_SCALED_VIEWPORT_SIZEI        (ivec2(viewWidth,viewHeight))
-    #define MC_ORIGINAL_VIEWPORT_SIZEI      (ivec2(viewWidth,viewHeight))
-    #define MC_JITTER_OFFSET                (vec2(0.0))
-    #define taau_render_scale 1.0
     #define taa_offset (taa_offsetF)
 #endif
-
 // Helper functions
 
 #define rcp(x) (1.0 / (x))

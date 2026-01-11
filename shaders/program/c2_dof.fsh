@@ -23,7 +23,13 @@ in vec2 uv;
 
 uniform sampler2D noisetex;
 
-uniform sampler2D colortex0;
+#if defined(TAAU) && !(defined(SR_INSTALLED) && defined(SR_SHOULD_APPLY_SCALE) && (SR_SHOULD_APPLY_SCALE == 1))
+uniform sampler2D colortex0;  // Scene color (render scale)
+#define SCENE_COLOR_TEX colortex0
+#else
+uniform sampler2D colortex18; // Scene color (upscaled / SR path)
+#define SCENE_COLOR_TEX colortex18
+#endif
 
 uniform sampler2D depthtex0;
 
@@ -65,7 +71,7 @@ void main() {
 #endif
 
 	if (depth < hand_depth) {
-		scene_color = texelFetch(colortex0, texel, 0).rgb;
+		scene_color = texelFetch(SCENE_COLOR_TEX, texel, 0).rgb;
 		return;
 	};
 
@@ -82,7 +88,7 @@ void main() {
 
 	for (int i = 0; i < DOF_SAMPLES; ++i) {
 		vec2 offset = vogel_disk_sample(i, DOF_SAMPLES, theta);
-		scene_color += textureLod(colortex0, clamp(vec2(uv + offset * CoC), vec2(0.0), vec2(1.0 - 2.0 * view_pixel_size * rcp(taau_render_scale))) * taau_render_scale, 0).rgb;
+		scene_color += textureLod(SCENE_COLOR_TEX, clamp(vec2(uv + offset * CoC), vec2(0.0), vec2(1.0 - 2.0 * view_pixel_size * rcp(taau_render_scale))) * taau_render_scale, 0).rgb;
 	}
 
 	scene_color *= rcp(DOF_SAMPLES);

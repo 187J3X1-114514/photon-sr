@@ -12,11 +12,16 @@
 #include "/include/global.glsl"
 
 
+#if defined(SR_INSTALLED) && defined(SR_SHOULD_APPLY_SCALE) && (SR_SHOULD_APPLY_SCALE == 1)
+// SR mode: output to full-res history only (colortex19)
+layout (location = 0) out vec4 result;
+/* RENDERTARGETS: 19 */
+#else
+// Non-SR mode: output bloom input and history
 layout (location = 0) out vec3 bloom_input;
 layout (location = 1) out vec4 result;
-
 /* RENDERTARGETS: 0,5 */
-
+#endif
 in vec2 uv;
 
 flat in float exposure;
@@ -29,9 +34,20 @@ flat in float histogram_selected_bin;
 // ------------
 //   Uniforms
 // ------------
-
-uniform sampler2D colortex0; // Scene color
-uniform sampler2D colortex5; // Scene history
+#if defined(TAAU) && !(defined(SR_INSTALLED) && defined(SR_SHOULD_APPLY_SCALE) && (SR_SHOULD_APPLY_SCALE == 1))
+uniform sampler2D colortex0;  // Scene color (render scale)
+#define SCENE_COLOR_TEX colortex0
+#else
+uniform sampler2D colortex18; // Scene color (upscaled / SR path)
+#define SCENE_COLOR_TEX colortex18
+#endif
+uniform sampler2D colortex5; // Scene history (render scale)
+#if defined(SR_INSTALLED) && defined(SR_SHOULD_APPLY_SCALE) && (SR_SHOULD_APPLY_SCALE == 1)
+uniform sampler2D colortex19; // Scene history (full resolution for SR)
+#define HISTORY_SAMPLER colortex19
+#else
+#define HISTORY_SAMPLER colortex5
+#endif
 #undef TAAU
 #ifdef TAAU
 uniform sampler2D colortex1; // TAA min color
@@ -162,15 +178,15 @@ vec3 neighborhood_clipping(
 	// a b c
 	// d e f
 	// g h i
-	vec3 a = texelFetch(colortex0, texel + ivec2(-1,  1), 0).rgb;
-	vec3 b = texelFetch(colortex0, texel + ivec2( 0,  1), 0).rgb;
-	vec3 c = texelFetch(colortex0, texel + ivec2( 1,  1), 0).rgb;
-	vec3 d = texelFetch(colortex0, texel + ivec2(-1,  0), 0).rgb;
+	vec3 a = texelFetch(SCENE_COLOR_TEX, texel + ivec2(-1,  1), 0).rgb;
+	vec3 b = texelFetch(SCENE_COLOR_TEX, texel + ivec2( 0,  1), 0).rgb;
+	vec3 c = texelFetch(SCENE_COLOR_TEX, texel + ivec2( 1,  1), 0).rgb;
+	vec3 d = texelFetch(SCENE_COLOR_TEX, texel + ivec2(-1,  0), 0).rgb;
 	vec3 e = current_color;
-	vec3 f = texelFetch(colortex0, texel + ivec2( 1,  0), 0).rgb;
-	vec3 g = texelFetch(colortex0, texel + ivec2(-1, -1), 0).rgb;
-	vec3 h = texelFetch(colortex0, texel + ivec2( 0, -1), 0).rgb;
-	vec3 i = texelFetch(colortex0, texel + ivec2( 1, -1), 0).rgb;
+	vec3 f = texelFetch(SCENE_COLOR_TEX, texel + ivec2( 1,  0), 0).rgb;
+	vec3 g = texelFetch(SCENE_COLOR_TEX, texel + ivec2(-1, -1), 0).rgb;
+	vec3 h = texelFetch(SCENE_COLOR_TEX, texel + ivec2( 0, -1), 0).rgb;
+	vec3 i = texelFetch(SCENE_COLOR_TEX, texel + ivec2( 1, -1), 0).rgb;
 
 	// Convert to YCoCg 
 	// Clipping in a luminance-chrominance color space is superior because the eyes are more 
@@ -252,7 +268,15 @@ void draw_histogram(ivec2 texel) {
 #endif
 
 void main() {
-	ivec2 texel = ivec2(gl_FragCoord.xy );
+	// Detect if we're reading from full-resolution SR output (colortex18)
+	// vs render-scale buffer (colortex0)
+	#if !defined(TAAU) || (defined(SR_INSTALLED) && defined(SR_SHOULD_APPLY_SCALE) && (SR_SHOULD_APPLY_SCALE == 1))
+	const bool reading_fullres_sr = true;
+	#else
+	const bool reading_fullres_sr = false;
+	#endif
+
+	ivec2 texel = ivec2(gl_FragCoord.xy);
 
 #ifdef TAA
 	#ifndef DISTANT_HORIZONS
@@ -278,10 +302,12 @@ void main() {
 	vec2 velocity = closest.xy - reproject_scene_space(closest_scene, hand, is_dh_terrain).xy;
 	vec2 previous_uv = uv - velocity;
 
-	vec3 history_color = catmull_rom_filter_fast_rgb(colortex5, previous_uv, 0.6);
+	vec3 history_color = catmull_rom_filter_fast_rgb(HISTORY_SAMPLER, previous_uv, 0.6);
 	     history_color = max0(history_color); // Eliminate NaNs in the history
 
-	float pixel_age = texelFetch(colortex5, ivec2(previous_uv * view_res), 0).a;
+	// History buffer size depends on whether SR scaling is applied
+	vec2 history_res = reading_fullres_sr ? view_res : (view_res * taau_render_scale);
+	float pixel_age = texelFetch(HISTORY_SAMPLER, ivec2(previous_uv * history_res), 0).a;
 	      pixel_age = max0(pixel_age * float(clamp01(previous_uv) == previous_uv) + 1.0);
 
 	// Distance factor to favour responsiveness closer to the camera and image stability further 
@@ -295,7 +321,7 @@ void main() {
 
 #ifndef TAAU
 	// Native resolution TAA
-	vec3 current_color = texelFetch(colortex0, texel, 0).rgb;
+	vec3 current_color = texelFetch(SCENE_COLOR_TEX, texel, 0).rgb;
 
 	// "Tonemapping" before applying TAA in order to perform the AA in SDR
 	// This improves the result because the differences between the luminances are closer to 
@@ -306,31 +332,41 @@ void main() {
 	history_color = neighborhood_clipping(texel, current_color, history_color, distance_factor);
 #else
 	// Temporal upscaling
-	vec2 pos = clamp01(uv + 0.5 * taa_offset * rcp(taau_render_scale)) * taau_render_scale;
+	// When reading full-res SR output, don't scale UV by taau_render_scale
+	vec2 pos = reading_fullres_sr 
+		? uv 
+		: clamp01(uv + 0.5 * taa_offset * rcp(taau_render_scale)) * taau_render_scale;
 
 	float confidence; // Confidence-of-quality factor, see "A Survey of Temporal Antialiasing Techniques" section 5.1
-	vec3 current_color = catmull_rom_filter(colortex0, pos, confidence).rgb;
+	vec3 current_color = reading_fullres_sr
+		? texelFetch(SCENE_COLOR_TEX, texel, 0).rgb
+		: catmull_rom_filter(SCENE_COLOR_TEX, pos, confidence).rgb;
 
-	if (min_of(current_color) < 0.0) {
+	if (!reading_fullres_sr && min_of(current_color) < 0.0) {
 		// Fix negatives arising around very dark objects
-		current_color = texture(colortex0, pos).rgb;
+		current_color = texture(SCENE_COLOR_TEX, pos).rgb;
 	}
 
 	current_color = reinhard(current_color);
 	history_color = reinhard(history_color);
 
-	// Interpolate AABB bounds across pixels
-	vec3 min_color = texture(colortex1, pos).rgb * 2.0 - 1.0;
-	vec3 max_color = texture(colortex2, pos).rgb * 2.0 - 1.0;
+	if (!reading_fullres_sr) {
+		// TAAU-specific: Interpolate AABB bounds and apply confidence rejection
+		vec3 min_color = texture(colortex1, pos).rgb * 2.0 - 1.0;
+		vec3 max_color = texture(colortex2, pos).rgb * 2.0 - 1.0;
 
-	bool history_clipped;
-	history_color = rgb_to_ycocg(history_color);
-	history_color = clip_aabb(history_color, min_color, max_color, history_clipped);
-	float flicker_reduction = history_clipped ? 0.0 : get_flicker_reduction(history_color, min_color, max_color);
-	history_color = ycocg_to_rgb(history_color);
+		bool history_clipped;
+		history_color = rgb_to_ycocg(history_color);
+		history_color = clip_aabb(history_color, min_color, max_color, history_clipped);
+		float flicker_reduction = history_clipped ? 0.0 : get_flicker_reduction(history_color, min_color, max_color);
+		history_color = ycocg_to_rgb(history_color);
 
-	alpha *= pow(confidence, TAAU_CONFIDENCE_REJECTION);
-	alpha *= 1.0 - TAAU_FLICKER_REDUCTION * flicker_reduction;
+		alpha *= pow(confidence, TAAU_CONFIDENCE_REJECTION);
+		alpha *= 1.0 - TAAU_FLICKER_REDUCTION * flicker_reduction;
+	} else {
+		// SR full-res mode: use standard neighborhood clipping like native TAA
+		history_color = neighborhood_clipping(texel, current_color, history_color, distance_factor);
+	}
 #endif
 
 	// Offcenter rejection from Jessie, which is originally by Zombye
@@ -347,7 +383,7 @@ void main() {
 
 	result = vec4(current_color, pixel_age * offcenter_rejection);
 #else // TAA disabled
-	result = texelFetch(colortex0, texel, 0);
+	result = texelFetch(SCENE_COLOR_TEX, texel, 0);
 #endif
 
 	// Store exposure in the alpha component of the bottom left texel of the history buffer
@@ -357,6 +393,10 @@ void main() {
 	draw_histogram(texel);
 #endif
 
+#if defined(SR_INSTALLED) && defined(SR_SHOULD_APPLY_SCALE) && (SR_SHOULD_APPLY_SCALE == 1)
+	// SR mode: bloom reads from colortex19 directly
+#else
 	bloom_input = result.rgb;
+#endif
 }
 

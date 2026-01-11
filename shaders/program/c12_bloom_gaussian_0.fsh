@@ -19,11 +19,21 @@
 
 layout (location = 0) out vec3 bloom_tiles;
 
+#if defined(SR_INSTALLED) && defined(SR_SHOULD_APPLY_SCALE) && (SR_SHOULD_APPLY_SCALE == 1)
+/* RENDERTARGETS: 18 */
+#else
 /* RENDERTARGETS: 0 */
+#endif
 
 in vec2 uv;
 
-uniform sampler2D colortex0;
+#if defined(SR_INSTALLED) && defined(SR_SHOULD_APPLY_SCALE) && (SR_SHOULD_APPLY_SCALE == 1)
+uniform sampler2D colortex18; // Bloom tiles (full res for SR)
+#define BLOOM_TILES_TEX colortex18
+#else
+uniform sampler2D colortex0;  // Bloom tiles (render scale)
+#define BLOOM_TILES_TEX colortex0
+#endif
 
 uniform vec2 view_res;
 
@@ -61,7 +71,7 @@ void main() {
 	for (int i = -4; i <= 4; ++i) {
 		ivec2 pos    = texel + ivec2(i, 0);
 		float weight = binomial_weights_9[abs(i)] * float(clamp(pos.x, bounds_min.x + 2, bounds_max.x - 2) == pos.x);
-		bloom_tiles  += texelFetch(colortex0, pos, 0).rgb * weight;
+		bloom_tiles  += texelFetch(BLOOM_TILES_TEX, pos, 0).rgb * weight;
 		weight_sum   += weight;
 	}
 

@@ -19,11 +19,21 @@
 
 layout (location = 0) out vec3 bloom_tiles;
 
+#if defined(SR_INSTALLED) && defined(SR_SHOULD_APPLY_SCALE) && (SR_SHOULD_APPLY_SCALE == 1)
+/* RENDERTARGETS: 18 */
+#else
 /* RENDERTARGETS: 0 */
+#endif
 
 in vec2 uv;
 
-uniform sampler2D colortex0;
+#if defined(SR_INSTALLED) && defined(SR_SHOULD_APPLY_SCALE) && (SR_SHOULD_APPLY_SCALE == 1)
+uniform sampler2D colortex18; // Bloom tiles (full res for SR)
+#define BLOOM_TILES_TEX colortex18
+#else
+uniform sampler2D colortex0;  // Bloom tiles (render scale)
+#define BLOOM_TILES_TEX colortex0
+#endif
 
 uniform vec2 view_res;
 
@@ -65,7 +75,7 @@ void main() {
 		ivec2 closest_bounds_max = ivec2(view_res * (closest_offset + closest_scale) - 1);
 
 		// Clamp to closest tile
-		bloom_tiles = texelFetch(colortex0, clamp(texel, closest_bounds_min, closest_bounds_max), 0).rgb;
+		bloom_tiles = texelFetch(BLOOM_TILES_TEX, clamp(texel, closest_bounds_min, closest_bounds_max), 0).rgb;
 
 		return;
 	}
@@ -78,7 +88,7 @@ void main() {
 	for (int i = -4; i <= 4; ++i) {
 		ivec2 pos    = texel + ivec2(0, i);
 		float weight = binomial_weights_9[abs(i)] * float(clamp(pos.y, bounds_min.y + 2, bounds_max.y - 2) == pos.y);
-		bloom_tiles  += texelFetch(colortex0, pos, 0).rgb * weight;
+		bloom_tiles  += texelFetch(BLOOM_TILES_TEX, pos, 0).rgb * weight;
 		weight_sum   += weight;
 	}
 

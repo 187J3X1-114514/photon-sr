@@ -217,7 +217,7 @@ void main() {
 	// Find the closest cloud distance between the current frame and a 4x4 area of the previous frame
 	float closest_distance = min(
 		apparent_distance,
-		texture_min_4x4(colortex12, uv_clamped * taau_render_scale)
+		texture_min_4x4(colortex12, uv_clamped)
 	);
 
 	// Early exit if clouds covered by terrain
@@ -243,8 +243,8 @@ void main() {
 	#define previous_uv_clamped previous_uv
 #endif
 
-	vec4 history = max0(catmull_rom_filter_fast(colortex11, previous_uv_clamped * taau_render_scale, 0.5));
-	vec3 history_data = texture(colortex12, previous_uv_clamped * taau_render_scale).xyz;
+	vec4 history = max0(catmull_rom_filter_fast(colortex11, previous_uv_clamped, 0.5));
+	vec3 history_data = texture(colortex12, previous_uv_clamped).xyz;
 
 	// Depth at the previous position
 	float history_depth = 1.0 - min_of(textureGather(colortex14, previous_uv_clamped, 0));

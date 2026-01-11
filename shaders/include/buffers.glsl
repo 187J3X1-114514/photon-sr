@@ -18,6 +18,9 @@ const int colortex13Format = RGBA16F;        // full res    | rendered transluce
 const int colortex14Format = RG16F;          // quarter res | ambient occlusion history data (always)
 const int colortex15Format = R32F;           // full res    | DH combined depth buffer (d1 -> c2)
 const int colortex16Format = RG16F;           // full res   | motion vectors (solid -> c2)
+const int colortex17Format = R32F;           // full res    | depth buffer
+const int colortex18Format  = R11F_G11F_B10F; // full res    | SR upscaled scene color (c1 -> c2)
+const int colortex19Format = RGBA16F;        // full res    | SR full-resolution TAA history (c4 -> c4)
 
 const bool colortex0Clear  = true;
 const bool colortex1Clear  = false;
@@ -35,7 +38,10 @@ const bool colortex12Clear = false;
 const bool colortex13Clear = true;
 const bool colortex14Clear = false;
 const bool colortex15Clear = false;
-const bool colortex16Clear = true;
+const bool colortex16Clear = false;
+const bool colortex17Clear = false;
+const bool colortex18Clear = false;
+const bool colortex19Clear = false;
 
 const vec4 colortex0ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
 const vec4 colortex3ClearColor = vec4(0.0, 0.0, 0.0, 0.0);

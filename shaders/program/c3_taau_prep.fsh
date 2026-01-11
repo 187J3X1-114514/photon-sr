@@ -11,9 +11,9 @@
 
 #include "/include/global.glsl"
 
-layout(location = 0) out vec4 mv;
+layout(location = 0) out float depthOutput;
 
-/* RENDERTARGETS: 1 */
+/* RENDERTARGETS: 17 */
 
 in vec2 uv;
 
@@ -42,10 +42,6 @@ uniform vec2 view_pixel_size;
 #include "/include/utility/color.glsl"
 #include "/include/utility/space_conversion.glsl"
 void main() {
-    ivec2 view_texel = ivec2(gl_FragCoord.xy * taau_render_scale);
-    float depth = texelFetch(depthtex0, view_texel, 0).x;
-    vec2 velocity = uv - reproject(vec3(uv, depth)).xy;
-    mv = vec4(velocity, 0, 0);
 }
 
 #endif

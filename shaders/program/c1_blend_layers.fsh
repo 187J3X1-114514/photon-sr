@@ -18,13 +18,14 @@
 #include "/include/global.glsl"
 
 layout (location = 0) out vec3 fragment_color;
+layout (location = 1) out float depthOutput;
 
-/* RENDERTARGETS: 0 */
+/* RENDERTARGETS: 0,17 */
 
 #ifdef BLOOMY_FOG
-layout (location = 1) out float bloomy_fog;
+layout (location = 2) out float bloomy_fog;
 
-/* RENDERTARGETS: 0,3 */
+/* RENDERTARGETS: 0,17,3 */
 #endif
 
 in vec2 uv;
@@ -194,6 +195,9 @@ vec4 smooth_filter(sampler2D sampler, vec2 coord) {
 void main() {
 	ivec2 texel = ivec2(gl_FragCoord.xy);
 
+    float depth = texelFetch(depthtex0, texel, 0).x;
+    depthOutput = depth;
+
 	// Sample textures
 
 	float front_depth      = texelFetch(depthtex0, texel, 0).x;
@@ -262,12 +266,18 @@ void main() {
 	}
 #endif
 
-	fragment_color = texture(colortex0, refracted_uv * taau_render_scale).rgb;
+	fragment_color = texture(colortex0, refracted_uv).rgb;
 	vec3 original_color = fragment_color;
+
+	// DEBUG
+	#define ENABLE_DH_WATER 1
+	#define ENABLE_TRANSLUCENT_BLEND 1
+	#define ENABLE_CLOUDS 1
+	#define ENABLE_FOG 1
 
 	// Draw DH water
 
-#if defined DISTANT_HORIZONS
+#if defined DISTANT_HORIZONS && ENABLE_DH_WATER
 	if (front_depth_dh != back_depth_dh) {
 		// if there is a layer of DH water behind the translucent layer, these 
 		// will store the position of that layer
@@ -330,6 +340,7 @@ void main() {
 
 	// Blend layers
 
+#if ENABLE_TRANSLUCENT_BLEND
 	fragment_color = blend_layers_with_fog(
 		fragment_color,
 		translucent_color,
@@ -338,6 +349,7 @@ void main() {
 		is_translucent,
 		is_sky
 	);
+#endif
 
 	// Border fog 
 
@@ -351,8 +363,9 @@ void main() {
 
 	// Blend clouds in front of translucents
 
-#if defined WORLD_OVERWORLD
+#if defined WORLD_OVERWORLD && ENABLE_CLOUDS
 	float clouds_apparent_distance;
+	// colortex11/12 are SR_SCALED, but texture() maps [0,1] UV to full texture, so no scaling needed
 	vec4 clouds_and_aurora = read_clouds_and_aurora(refracted_uv, clouds_apparent_distance);
 
 	if (is_translucent || is_dh_translucent) {
@@ -364,7 +377,7 @@ void main() {
 
 	// Blend fog
 
-#if defined VL || defined LPV_VL
+#if (defined VL || defined LPV_VL) && ENABLE_FOG
 	// Volumetric fog
 
 	fragment_color = fragment_color * fog_transmittance + fog_scattering;
@@ -375,7 +388,7 @@ void main() {
 	#endif
 #endif
 
-#if !defined VL 
+#if !defined VL && ENABLE_FOG
 	// Analytic fog
 
 	if (isEyeInWater == 1) {

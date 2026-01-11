@@ -13,7 +13,11 @@
 
 layout (location = 0) out vec3 scene_color;
 
+#if defined(SR_INSTALLED) && defined(SR_SHOULD_APPLY_SCALE) && (SR_SHOULD_APPLY_SCALE == 1)
+/* RENDERTARGETS: 18 */
+#else
 /* RENDERTARGETS: 0 */
+#endif
 
 in vec2 uv;
 
@@ -21,9 +25,21 @@ in vec2 uv;
 //   Uniforms
 // ------------
 
-uniform sampler2D colortex0; // bloom tiles
+#if defined(SR_INSTALLED) && defined(SR_SHOULD_APPLY_SCALE) && (SR_SHOULD_APPLY_SCALE == 1)
+uniform sampler2D colortex18; // bloom tiles (full res for SR)
+#define BLOOM_TILES_TEX colortex18
+#else
+uniform sampler2D colortex0; // bloom tiles (render scale)
+#define BLOOM_TILES_TEX colortex0
+#endif
 uniform sampler2D colortex3; // fog transmittance
-uniform sampler2D colortex5; // scene color
+uniform sampler2D colortex5; // scene color (render scale)
+#if defined(SR_INSTALLED) && defined(SR_SHOULD_APPLY_SCALE) && (SR_SHOULD_APPLY_SCALE == 1)
+uniform sampler2D colortex19; // scene color (full resolution for SR)
+#define SCENE_HISTORY_SAMPLER colortex19
+#else
+#define SCENE_HISTORY_SAMPLER colortex5
+#endif
 
 uniform float aspectRatio;
 uniform float blindness;
@@ -68,7 +84,7 @@ vec3 get_bloom(out vec3 fog_bloom) {
 
 		vec2 tile_coord = uv * tile_scale + tile_offset;
 
-		vec3 tile = bicubic_filter(colortex0, tile_coord).rgb;
+		vec3 tile = bicubic_filter(BLOOM_TILES_TEX, tile_coord).rgb;
 
 		tile_sum += tile * weight;
 		weight_sum += weight;
@@ -183,8 +199,8 @@ float vignette(vec2 uv) {
 void main() {
 	ivec2 texel = ivec2(gl_FragCoord.xy);
 
-	scene_color = texelFetch(colortex5, texel, 0).rgb;
-	float exposure = texelFetch(colortex5, ivec2(0), 0).a;
+	scene_color = texelFetch(SCENE_HISTORY_SAMPLER, texel, 0).rgb;
+	float exposure = texelFetch(SCENE_HISTORY_SAMPLER, ivec2(0), 0).a;
 
 #ifdef BLOOM
 	vec3 fog_bloom;

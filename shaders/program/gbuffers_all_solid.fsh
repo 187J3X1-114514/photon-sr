@@ -372,5 +372,5 @@ void main() {
     vec2 current_screen = current_ndc * 0.5 + 0.5;
     vec2 previous_screen = previous_ndc * 0.5 + 0.5;
 
-    motion_vectors = (previous_screen - current_screen) * view_res * taau_render_scale;
+    motion_vectors = previous_screen - current_screen;
 }

@@ -25,7 +25,7 @@
                     },
                     "depth": {
                         "enabled": true,
-                        "src": "depthtex",
+                        "src": "alttex17",
                         "region": [
                             0,
                             0,
@@ -35,7 +35,7 @@
                     },
                     "motion_vectors": {
                         "enabled": true,
-                        "src": "colortex1",
+                        "src": "colortex16",
                         "region": [
                             0,
                             0,
@@ -48,8 +48,8 @@
                     "upscaled_color": {
                         "enabled": true,
                         "target": [
-                            "colortex0",
-                            "alttex0"
+                            "colortex18",
+                            "alttex18"
                         ],
                         "region": [
                             0,

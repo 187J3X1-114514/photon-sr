@@ -76,6 +76,6 @@ void main() {
 	fog_params = get_fog_parameters(get_weather());
 #endif
 
-	vec2 vertex_pos = gl_Vertex.xy * taau_render_scale;
+	vec2 vertex_pos = gl_Vertex.xy;
 	gl_Position = vec4(vertex_pos * 2.0 - 1.0, 0.0, 1.0);
 }
